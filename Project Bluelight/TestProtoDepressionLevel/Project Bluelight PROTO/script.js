@@ -26,11 +26,11 @@ var leftHeld, upHeld, rightHeld;
 
 //Initialize game variables
 var player, enemy, glass;
+var gravity = 0.3;
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
 document.onkeyup = handleKeyUp;
-
 
 function init()
 {
@@ -77,12 +77,20 @@ function tick()
 
     if(upHeld)
     {
-        player.y -= 0.2;
+        player.y -= 0.5;
     }
 
+	//Gravitate down
+	gravitate(player);
+	
     player.onClick = knockBack;
 
     stage.update();
+}
+
+function gravitate(p)
+{
+	p.y += gravity;
 }
 
 function knockBack()
