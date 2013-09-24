@@ -27,6 +27,8 @@ var leftHeld, upHeld, rightHeld;
 //Initialize game variables
 var player, enemy, glass;
 var gravity = 0.3;
+var playerAccel = 0;
+var accelSide = 0.05;
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
@@ -66,15 +68,38 @@ function tick()
 {
     if(leftHeld)
     {
-        player.x -= 0.3;
+		//If player is not fully accelerated
+		if(playerAccel > -0.3)
+		{
+			//Set player acceleration more left
+			playerAccel -= accelSide;
+		}
         console.log("leftKey is held!");
     }
+	else //If not moving left
+	{
+		//Slowly come to a halt
+		playerAccel -= (playerAccel/60);
+	}
+    
+	if(rightHeld)
+	{
+		//If player is not fully accelerated
+		if(playerAccel < 0.3)
+		{
+			//Set player acceleration more right
+			playerAccel += accelSide;
+		}
+	}
+	else //If not moving right
+	{
+	    //Slowly come to a halt
+		playerAccel -= (playerAccel/60);
+	}
 
-    if(rightHeld)
-    {
-        player.x += 0.3;
-    }
-
+	//Exert acceleration on player
+	player.x += playerAccel;
+	
     if(upHeld)
     {
         player.y -= 0.5;
