@@ -56,8 +56,27 @@ function init()
     player.graphics.beginFill("black").drawCircle(0, 0, radius);
     player.x = canvas.width / 2;
     player.y = canvas.height / 2;
+	player.colBoxSize = 20;
+	
     stage.addChild(player);
 
+	//Create the glass
+	glass = new createjs.Shape();
+	glass.graphics.beginFill("red").drawCircle(0,0, radius);
+	glass.x = canvas.width / 2;
+	glass.y = canvas.height / 2 - 20;
+	stage.addChild(glass);
+	
+	glass2 = new createjs.Shape();
+	glass2.graphics.beginFill("red").drawCircle(0,0, radius);
+	glass2.x = canvas.width / 2;
+	glass2.y = canvas.height / 2 - 120;
+	stage.addChild(glass2);
+	
+	glass.target = glass2;
+	glass2.target = glass;
+	
+	
     //Set the update loop
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addListener(window);
@@ -66,6 +85,7 @@ function init()
 //Game Loop
 function tick()
 {
+	// PLAYER FUNCTIONS
     if(leftHeld)
     {
 		//If player is not fully accelerated
@@ -96,7 +116,44 @@ function tick()
 	    //Slowly come to a halt
 		playerAccel -= (playerAccel/60);
 	}
-
+	
+	//GLASS FUNCTIONS
+	
+	//SEEK
+	//*/
+	glass.velx = (glass.target.x - glass.x)/400;
+	glass.vely = (glass.target.y - glass.y)/400;
+	
+	glass2.velx = (glass2.target.x - glass2.x)/400;
+	glass2.vely = (glass2.target.y - glass2.y)/400;
+	
+	glass.x += glass.velx;
+	glass.y += glass.vely;
+	
+	
+	glass2.x += glass2.velx;
+	glass2.y += glass2.vely;
+	
+	//*/
+	
+	//COLLISIONS
+	//If glass is inside collision box
+	if(player.x - player.colBoxSize < glass.x
+		&& player.x + player.colBoxSize > glass.x
+		&& player.y - player.colBoxSize < glass.y
+		&& player.y + player.colBoxSize > glass.y)
+		{
+			knockBack();
+		}
+	
+	if(player.x - player.colBoxSize < glass2.x
+		&& player.x + player.colBoxSize > glass2.x
+		&& player.y - player.colBoxSize < glass2.y
+		&& player.y + player.colBoxSize > glass2.y)
+		{
+			knockBack();
+		}
+	
 	//Exert acceleration on player
 	player.x += playerAccel;
 	
