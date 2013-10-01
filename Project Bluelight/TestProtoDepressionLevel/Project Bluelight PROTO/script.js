@@ -25,10 +25,19 @@ var KEYCODE_RIGHT = 39;
 var leftHeld, upHeld, rightHeld;
 
 //Initialize game variables
+<<<<<<< HEAD
 var player, enemy, glass;
 var timerMsg;
 var depthMeter, randDepth;
+=======
+var player, enemy, glass, glassInst;
+var SEEK = true;  //CHANGE THIS TO TURN SEEKING ON AND OFF
+>>>>>>> pr/3
 var gravity = 0.3;
+var playerAccel = 0;
+var accelSide = 0.05;
+var colBoxSize = 20;
+var glassNumber = 2;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
@@ -56,8 +65,10 @@ function init()
     player.graphics.beginFill("black").drawCircle(0, 0, radius);
     player.x = canvas.width / 2;
     player.y = canvas.height / 2;
+	
     stage.addChild(player);
 
+<<<<<<< HEAD
     //Create the timer
     timerMsg = new createjs.Text('30', 'Bold 25px Arial', 'black');
     timerMsg.x = 20;
@@ -101,6 +112,26 @@ function init()
         randDelay--;
     }
 
+=======
+	//Create the glass
+	glass = new Array();
+	
+	for(var i = 0; i < glassNumber; i++)
+	{
+		glassInst = new createjs.Shape();
+		glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
+		glassInst.x = canvas.width / 2;
+		glassInst.y = canvas.height / 2 -  (40*(i+1));
+		glassInst.frozen = false;
+		stage.addChild(glassInst);
+		glass[i] = glassInst;
+	}
+	
+	glass[0].target = glass[1];
+	glass[1].target = glass[0];
+	
+	
+>>>>>>> pr/3
     //Set the update loop
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addListener(window);
@@ -111,17 +142,94 @@ function init()
 //Game Loop
 function tick()
 {
+	// PLAYER FUNCTIONS
     if(leftHeld)
     {
-        player.x -= 0.3;
+		//If player is not fully accelerated
+		if(playerAccel > -0.3)
+		{
+			//Set player acceleration more left
+			playerAccel -= accelSide;
+		}
         console.log("leftKey is held!");
     }
+	else //If not moving left
+	{
+		//Slowly come to a halt
+		playerAccel -= (playerAccel/60);
+	}
+    
+	if(rightHeld)
+	{
+		//If player is not fully accelerated
+		if(playerAccel < 0.3)
+		{
+			//Set player acceleration more right
+			playerAccel += accelSide;
+		}
+	}
+	else //If not moving right
+	{
+	    //Slowly come to a halt
+		playerAccel -= (playerAccel/60);
+	}
+	
+	//GLASS FUNCTIONS
+	
+	//SEEK
+	//*/
+	if(SEEK)
+	{
+		for(var i = 0; i < glass.length; i++)
+		{
+			if(!glass[i].frozen)
+			{
+				glass[i].velx = (glass[i].target.x - glass[i].x)/400;
+				glass[i].vely = (glass[i].target.y - glass[i].y)/400;
+	
+				glass[i].x += glass[i].velx;
+				glass[i].y += glass[i].vely;
+			}
+		}
+	}
+	
+	//*/
+	
+	//COLLISIONS
+	//If glass is inside collision box
 
-    if(rightHeld)
-    {
-        player.x += 0.3;
-    }
-
+	//*/
+	for(var i = 0; i < glass.length; i++)
+	{
+		if(player.x - colBoxSize < glass[i].x
+			&& player.x + colBoxSize > glass[i].x
+			&& player.y - colBoxSize < glass[i].y
+			&& player.y + colBoxSize > glass[i].y)
+		{
+			knockBack();
+		}
+	}
+	//*/
+	for(var i = 0; i < glass.length-1; i++)
+	{
+		for(var j = i+1; j < glass.length; j++)
+		{
+			if((!glass[i].frozen && !glass[j].frozen)
+				&& glass[i].x - colBoxSize < glass[j].x
+				&& glass[i].x + colBoxSize > glass[j].x
+				&& glass[i].y - colBoxSize < glass[j].y
+				&& glass[i].y + colBoxSize > glass[j].y)
+			{
+				glass[i].frozen = true;
+				glass[j].frozen = true;
+			}
+		}
+	}
+	//*/
+	
+	//Exert acceleration on player
+	player.x += playerAccel;
+	
     if(upHeld)
     {
         player.y -= 0.5;
