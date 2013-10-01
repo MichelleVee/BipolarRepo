@@ -25,10 +25,12 @@ var KEYCODE_RIGHT = 39;
 var leftHeld, upHeld, rightHeld;
 
 //Initialize game variables
-var player, enemy, glass;
+var player, enemy, glass, glassInst;
+var SEEK = true;  //CHANGE THIS TO TURN SEEKING ON AND OFF
 var gravity = 0.3;
 var playerAccel = 0;
 var accelSide = 0.05;
+var colBoxSize = 20;
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
@@ -56,25 +58,30 @@ function init()
     player.graphics.beginFill("black").drawCircle(0, 0, radius);
     player.x = canvas.width / 2;
     player.y = canvas.height / 2;
-	player.colBoxSize = 20;
 	
     stage.addChild(player);
 
 	//Create the glass
-	glass = new createjs.Shape();
-	glass.graphics.beginFill("red").drawCircle(0,0, radius);
-	glass.x = canvas.width / 2;
-	glass.y = canvas.height / 2 - 20;
-	stage.addChild(glass);
+	glass = new Array();
 	
-	glass2 = new createjs.Shape();
-	glass2.graphics.beginFill("red").drawCircle(0,0, radius);
-	glass2.x = canvas.width / 2;
-	glass2.y = canvas.height / 2 - 120;
-	stage.addChild(glass2);
+	glassInst = new createjs.Shape();
+	glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
+	glassInst.x = canvas.width / 2;
+	glassInst.y = canvas.height / 2 - 20;
+	glassInst.frozen = false;
+	stage.addChild(glassInst);
+	glass[0] = glassInst;
 	
-	glass.target = glass2;
-	glass2.target = glass;
+	glassInst = new createjs.Shape();
+	glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
+	glassInst.x = canvas.width / 2 + 60;
+	glassInst.y = canvas.height / 2 - 120;
+	glassInst.frozen = false;
+	stage.addChild(glassInst);
+	glass[1] = glassInst;
+	
+	glass[0].target = glass[1];
+	glass[1].target = glass[0];
 	
 	
     //Set the update loop
@@ -121,38 +128,54 @@ function tick()
 	
 	//SEEK
 	//*/
-	glass.velx = (glass.target.x - glass.x)/400;
-	glass.vely = (glass.target.y - glass.y)/400;
+	if(SEEK)
+	{
+		for(var i = 0; i < glass.length; i++)
+		{
+			if(!glass[i].frozen)
+			{
+				glass[i].velx = (glass[i].target.x - glass[i].x)/400;
+				glass[i].vely = (glass[i].target.y - glass[i].y)/400;
 	
-	glass2.velx = (glass2.target.x - glass2.x)/400;
-	glass2.vely = (glass2.target.y - glass2.y)/400;
-	
-	glass.x += glass.velx;
-	glass.y += glass.vely;
-	
-	
-	glass2.x += glass2.velx;
-	glass2.y += glass2.vely;
+				glass[i].x += glass[i].velx;
+				glass[i].y += glass[i].vely;
+			}
+		}
+	}
 	
 	//*/
 	
 	//COLLISIONS
 	//If glass is inside collision box
-	if(player.x - player.colBoxSize < glass.x
-		&& player.x + player.colBoxSize > glass.x
-		&& player.y - player.colBoxSize < glass.y
-		&& player.y + player.colBoxSize > glass.y)
+
+	//*/
+	for(var i = 0; i < glass.length; i++)
+	{
+		if(player.x - colBoxSize < glass[i].x
+			&& player.x + colBoxSize > glass[i].x
+			&& player.y - colBoxSize < glass[i].y
+			&& player.y + colBoxSize > glass[i].y)
 		{
 			knockBack();
 		}
-	
-	if(player.x - player.colBoxSize < glass2.x
-		&& player.x + player.colBoxSize > glass2.x
-		&& player.y - player.colBoxSize < glass2.y
-		&& player.y + player.colBoxSize > glass2.y)
+	}
+	//*/
+	for(var i = 0; i < glass.length-1; i++)
+	{
+		for(var j = i+1; j < glass.length; j++)
 		{
-			knockBack();
+			if((!glass[i].frozen && !glass[j].frozen)
+				&& glass[i].x - colBoxSize < glass[j].x
+				&& glass[i].x + colBoxSize > glass[j].x
+				&& glass[i].y - colBoxSize < glass[j].y
+				&& glass[i].y + colBoxSize > glass[j].y)
+			{
+				glass[i].frozen = true;
+				glass[j].frozen = true;
+			}
 		}
+	}
+	//*/
 	
 	//Exert acceleration on player
 	player.x += playerAccel;
