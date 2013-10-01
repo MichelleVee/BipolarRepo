@@ -31,6 +31,7 @@ var gravity = 0.3;
 var playerAccel = 0;
 var accelSide = 0.05;
 var colBoxSize = 20;
+var glassNumber = 2;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
@@ -64,21 +65,16 @@ function init()
 	//Create the glass
 	glass = new Array();
 	
-	glassInst = new createjs.Shape();
-	glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
-	glassInst.x = canvas.width / 2;
-	glassInst.y = canvas.height / 2 - 20;
-	glassInst.frozen = false;
-	stage.addChild(glassInst);
-	glass[0] = glassInst;
-	
-	glassInst = new createjs.Shape();
-	glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
-	glassInst.x = canvas.width / 2 + 60;
-	glassInst.y = canvas.height / 2 - 120;
-	glassInst.frozen = false;
-	stage.addChild(glassInst);
-	glass[1] = glassInst;
+	for(var i = 0; i < glassNumber; i++)
+	{
+		glassInst = new createjs.Shape();
+		glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
+		glassInst.x = canvas.width / 2;
+		glassInst.y = canvas.height / 2 -  (40*(i+1));
+		glassInst.frozen = false;
+		stage.addChild(glassInst);
+		glass[i] = glassInst;
+	}
 	
 	glass[0].target = glass[1];
 	glass[1].target = glass[0];
