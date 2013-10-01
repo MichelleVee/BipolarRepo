@@ -25,18 +25,16 @@ var KEYCODE_RIGHT = 39;
 var leftHeld, upHeld, rightHeld;
 
 //Initialize game variables
-<<<<<<< HEAD
 var player, enemy, glass;
 var timerMsg;
 var depthMeter, randDepth;
-=======
-var player, enemy, glass, glassInst;
 var SEEK = true;  //CHANGE THIS TO TURN SEEKING ON AND OFF
->>>>>>> pr/3
+
 var gravity = 0.3;
 var playerAccel = 0;
 var accelSide = 0.05;
 var colBoxSize = 20;
+var glassInst;
 var glassNumber = 2;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
 
 //Key event initialization
@@ -68,7 +66,6 @@ function init()
 	
     stage.addChild(player);
 
-<<<<<<< HEAD
     //Create the timer
     timerMsg = new createjs.Text('30', 'Bold 25px Arial', 'black');
     timerMsg.x = 20;
@@ -112,7 +109,6 @@ function init()
         randDelay--;
     }
 
-=======
 	//Create the glass
 	glass = new Array();
 	
@@ -129,9 +125,7 @@ function init()
 	
 	glass[0].target = glass[1];
 	glass[1].target = glass[0];
-	
-	
->>>>>>> pr/3
+
     //Set the update loop
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addListener(window);
