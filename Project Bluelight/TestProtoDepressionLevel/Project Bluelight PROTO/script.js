@@ -25,13 +25,15 @@ var KEYCODE_RIGHT = 39;
 var leftHeld, upHeld, rightHeld;
 
 //Initialize game variables
-var player, enemy, glass, glassInst;
+var player, enemy, glass, glassInst, orbs, orbInst;
 var SEEK = true;  //CHANGE THIS TO TURN SEEKING ON AND OFF
 var gravity = 0.3;
 var playerAccel = 0;
 var accelSide = 0.05;
 var colBoxSize = 20;
-var glassNumber = 2;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
+var glassNumber = 8;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
+var glassSpawnInterval = 300; //CHANGE THIS TO CHANGE HOW OFTEN GLASS SPAWNS
+var orbSpawnInterval = 600;  //CHANGE THIS TO CHANGE HOW OFTEN ORBS SPAWN
 
 //Key event initialization
 document.onkeydown = handleKeyDown;
@@ -65,20 +67,13 @@ function init()
 	//Create the glass
 	glass = new Array();
 	
-	for(var i = 0; i < glassNumber; i++)
-	{
-		glassInst = new createjs.Shape();
-		glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
-		glassInst.x = canvas.width / 2;
-		glassInst.y = canvas.height / 2 -  (40*(i+1));
-		glassInst.frozen = false;
-		stage.addChild(glassInst);
-		glass[i] = glassInst;
-	}
+	createGlassWave();
+
+	//Create the orbs
 	
-	glass[0].target = glass[1];
-	glass[1].target = glass[0];
+	orbs = new Array();
 	
+	createOrb();
 	
     //Set the update loop
     createjs.Ticker.setFPS(60);
@@ -88,6 +83,19 @@ function init()
 //Game Loop
 function tick()
 {
+	var ticks = createjs.Ticker.getTicks(true);
+	
+	if(ticks % glassSpawnInterval == 0)
+	{
+		createGlassWave();
+	}
+	
+	if(ticks % orbSpawnInterval == 0)
+	{
+		createOrb();
+	}
+	
+
 	// PLAYER FUNCTIONS
     if(leftHeld)
     {
@@ -120,10 +128,41 @@ function tick()
 		playerAccel -= (playerAccel/60);
 	}
 	
-	//GLASS FUNCTIONS
+	//ORBS
 	
 	//SEEK
-	//*/
+	if(SEEK)
+	{
+		for(var i = 0; i < orbs.length; i++)
+		{
+			//If player is not moving, orbs stop
+			orbs[i].velx = (player.x - orbs[i].x)/(Math.sqrt(distSq(orbs[i],player))) / 2;
+			if(upHeld)
+			{
+				orbs[i].velx *= Math.abs(playerAccel)+0.5;
+			}
+			else
+			{
+				orbs[i].velx *= Math.abs(playerAccel);
+			}
+			orbs[i].vely = (player.y - orbs[i].y)/(Math.sqrt(distSq(orbs[i],player))) / 2;
+			if(upHeld)
+			{
+				orbs[i].velx *= Math.abs(playerAccel)+0.5 ;
+			}
+			else
+			{
+				orbs[i].vely *= Math.abs(playerAccel);
+			}
+			
+			orbs[i].x += orbs[i].velx;
+			orbs[i].y += orbs[i].vely;
+		}
+	}
+	
+	//GLASS
+	
+	//SEEK
 	if(SEEK)
 	{
 		for(var i = 0; i < glass.length; i++)
@@ -139,12 +178,9 @@ function tick()
 		}
 	}
 	
-	//*/
-	
 	//COLLISIONS
 	//If glass is inside collision box
 
-	//*/
 	for(var i = 0; i < glass.length; i++)
 	{
 		if(player.x - colBoxSize < glass[i].x
@@ -155,12 +191,12 @@ function tick()
 			knockBack();
 		}
 	}
-	//*/
+	
 	for(var i = 0; i < glass.length-1; i++)
 	{
 		for(var j = i+1; j < glass.length; j++)
 		{
-			if((!glass[i].frozen && !glass[j].frozen)
+			if((!glass[i].frozen || !glass[j].frozen)
 				&& glass[i].x - colBoxSize < glass[j].x
 				&& glass[i].x + colBoxSize > glass[j].x
 				&& glass[i].y - colBoxSize < glass[j].y
@@ -171,7 +207,18 @@ function tick()
 			}
 		}
 	}
-	//*/
+	
+	for(var i = 0; i < orbs.length; i++)
+	{
+		if(player.x - colBoxSize < orbs[i].x
+			&& player.x + colBoxSize > orbs[i].x
+			&& player.y - colBoxSize < orbs[i].y
+			&& player.y + colBoxSize > orbs[i].y)
+		{
+			knockBack();
+			orbs.splice(i, 1);
+		}
+	}
 	
 	//Exert acceleration on player
 	player.x += playerAccel;
@@ -184,9 +231,72 @@ function tick()
 	//Gravitate down
 	gravitate(player);
 	
-    player.onClick = knockBack;
+	for(var i = 0; i < glass.length; i++)
+	{
+		gravitate(glass[i]);
+	}
 
     stage.update();
+}
+
+function createGlassWave()
+{
+	for(var i = 0; i < glassNumber; i++)
+	{
+		glassInst = new createjs.Shape();
+		glassInst.graphics.beginFill("red").drawCircle(0,0, radius);
+		glassInst.x = (canvas.width / 2) + (Math.floor(Math.random()*4.5) *(canvas.width / 8) * ((Math.floor(Math.random()*2)*2)-1));
+		glassInst.y = canvas.height / 2 - 255;
+		glassInst.targetFound = false;
+		glassInst.frozen = false;
+		stage.addChild(glassInst);
+		glass.push(glassInst);
+		findNewTarget(glassInst);
+	}
+}
+
+function createOrb()
+{
+	orbInst = new createjs.Shape();
+	orbInst.graphics.beginFill("blue").drawCircle(0,0, radius);
+	orbInst.x = (canvas.width / 2) + 350 * ((Math.floor(Math.random()*2)*2)-1);
+	orbInst.y = (canvas.height / 2) + (Math.floor(Math.random()*3) *(canvas.height / 8) * ((Math.floor(Math.random()*2)*2)-1));
+	stage.addChild(orbInst);
+	orbs.push(orbInst);
+}
+
+function distSq(a,b)
+{
+	var distance = ((b.x - a.x) * (b.x - a.x)) + ((b.y - a.y) * (b.y - a.y));
+	return distance;
+}
+
+function findNewTarget(a)
+{
+	var shortest = 1000000;
+	var curDist;
+	var curTarget;
+	for(var i = 0; i < glass.length; i++)
+	{
+		//if a and glass[i] are not the same
+		if(a != glass[i])
+		{
+			curDist = distSq(a,glass[i]);
+			//current distance is less than the shortest
+			if(curDist < shortest)
+			{
+				shortest = curDist;
+				curTarget = glass[i];
+			}
+		}
+	}
+	if(curTarget)
+	{
+		a.target = curTarget;
+		curTarget.target = a;
+		a.targetFound = true;
+		curTarget.targetFound = true;
+	}
 }
 
 function gravitate(p)
@@ -194,13 +304,6 @@ function gravitate(p)
 	p.y += gravity;
 }
 
-function knockBack()
-{
-    var playerY = player.y;
-    console.log("Mouse clicked!");
-    createjs.Tween.get(player).to({y:playerY + 90}, 1000, createjs.Ease.getPowOut(2.2));
-
-}
 function handleKeyDown(e)
 {
     if(!e)
@@ -245,4 +348,12 @@ function handleKeyUp(e)
     {
         upHeld = false;
     }
+}
+
+function knockBack()
+{
+    var playerY = player.y;
+    console.log("Mouse clicked!");
+    createjs.Tween.get(player).to({y:playerY + 90}, 1000, createjs.Ease.getPowOut(2.2));
+
 }
