@@ -37,6 +37,9 @@ var colBoxSize = 20;
 var glassInst;
 var glassNumber = 2;  //CHANGE THIS TO CHANGE THE AMOUNT OF GLASS
 
+//ANIMATION TESTING
+var spriteSheet, testAni;
+
 //Key event initialization
 document.onkeydown = handleKeyDown;
 document.onkeyup = handleKeyUp;
@@ -56,7 +59,6 @@ function init()
 
     //This is strictly for testing the "pushback" the player
     //receives upon collision with an enemy
-    stage.mouseEventEnabled = true;
 
     //Create the player
     player = new createjs.Shape();
@@ -126,11 +128,18 @@ function init()
 	glass[0].target = glass[1];
 	glass[1].target = glass[0];
 
+    //ANIMATION
+    /*spriteSheet = new createjs.SpriteSheet({images: ["Breaking.png"], frames: [[0,0,740,506,0,360,249.4],[740,0,740,506,0,360,249.4],[1480,0,740,506,0,360,249.4],[2220,0,740,506,0,360,249.4],[2960,0,740,506,0,360,249.4],[0,506,740,506,0,360,249.4],[740,506,740,506,0,360,249.4],[1480,506,740,506,0,360,249.4],[2220,506,740,506,0,360,249.4],[2960,506,740,506,0,360,249.4],[0,1012,740,506,0,360,249.4],[740,1012,740,506,0,360,249.4],[1480,1012,740,506,0,360,249.4],[2220,1012,740,506,0,360,249.4],[2960,1012,740,506,0,360,249.4],[0,1518,740,506,0,360,249.4],[740,1518,740,506,0,360,249.4],[1480,1518,740,506,0,360,249.4],[2220,1518,740,506,0,360,249.4],[2960,1518,740,506,0,360,249.4],[0,2024,740,506,0,360,249.4],[740,2024,740,506,0,360,249.4],[1480,2024,740,506,0,360,249.4],[2220,2024,740,506,0,360,249.4],[2960,2024,740,506,0,360,249.4],[0,2530,740,506,0,360,249.4]]});
+    testAni = new createjs.Sprite(spriteSheet);
+    testAni.x = 300;
+    testAni.y = 300;
+    stage.addChild(testAni);*/
+
     //Set the update loop
     createjs.Ticker.setFPS(60);
-    createjs.Ticker.addListener(window);
-    createjs.Ticker.addEventListener('tick', timer);
-    createjs.Ticker.addEventListener('tick', randTimer);
+    createjs.Ticker.addEventListener("tick", tick);
+    createjs.Ticker.addEventListener("tick", timer);
+    createjs.Ticker.addEventListener("tick", randTimer);
 }
 
 //Game Loop
@@ -231,8 +240,6 @@ function tick()
 
 	//Gravitate down
 	gravitate(player);
-	
-    player.onClick = knockBack;
 
     //For the depth meter simulation
     switch(randDepth)
@@ -254,6 +261,7 @@ function tick()
             break;
     }
 
+    //testAni.play();
     stage.update();
 }
 
@@ -265,7 +273,6 @@ function gravitate(p)
 function knockBack()
 {
     var playerY = player.y;
-    console.log("Mouse clicked!");
     createjs.Tween.get(player).to({y:playerY + 90}, 1000, createjs.Ease.getPowOut(2.2));
 
 }
